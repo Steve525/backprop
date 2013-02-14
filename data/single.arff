@@ -1,0 +1,22 @@
+% 1. Title: Single
+% 
+% 2. Sources:
+%      (a) Creator: Stephen J. Clarkson
+%      (b) Institution: BYU
+%      (c) Date: January, 2013
+
+@RELATION Single
+
+@ATTRIBUTE height		REAL
+@ATTRIBUTE income		REAL
+@ATTRIBUTE Single		{True, False}
+
+@DATA
+	79,41000,True
+	70,30000,True
+	50,90000,True
+	59,85000,True
+	80,100000,False
+	69,32000,False
+	60,40000,False
+	65,29000,False

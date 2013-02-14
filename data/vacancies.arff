@@ -1,0 +1,22 @@
+% 1. Title: Rent
+% 
+% 2. Sources:
+%      (a) Creator: Stephen J. Clarkson
+%      (b) Institution: BYU
+%      (c) Date: January, 2013
+
+@RELATION Rent
+
+@ATTRIBUTE rentPerMonth		REAL
+@ATTRIBUTE internetSpeed	REAL
+@ATTRIBUTE vacancies		{True, False}
+
+@DATA
+	175,0.50,True
+	150,0.40,True
+	135,0.31,True
+	200,0.56,True
+	340,0.98,False
+	275,0.80,False
+	275,0.85,False
+	290,0.89,False
