@@ -5,7 +5,7 @@ public class OutputUnit extends AbstractUnit {
 	double _target;
 	
 	public OutputUnit(int number) {
-		_number = number;
+		_id = number;
 		_target = 0;
 	}
 
@@ -17,4 +17,6 @@ public class OutputUnit extends AbstractUnit {
 	public void setTarget(double target) {
 		_target = target;
 	}
+	
+	public double getTarget() { return _target; }
 }

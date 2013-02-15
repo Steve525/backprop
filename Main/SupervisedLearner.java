@@ -68,6 +68,7 @@ public abstract class SupervisedLearner {
 					throw new Exception("The label is out of range");
 				predict(feat, prediction);
 				int pred = (int)prediction[0];
+				//System.out.println("TARG: " + targ + " PRED: " + pred);
 				if(confusion != null)
 					confusion.set(targ, pred, confusion.get(targ, pred) + 1);
 				if(pred == targ)

@@ -67,8 +67,8 @@ public class MLSystemManager {
 		if (evalMethod.equals("training"))
 		{
 			System.out.println("Calculating accuracy on training set...");
-			Matrix features = new Matrix(data, 0, 0, data.rows(), data.cols() - 2);	// change 2 back to 1 so that the last feature is considered output
-			Matrix labels = new Matrix(data, 0, data.cols() - 2, data.rows(), 2);	// change 2 back to 1 so that the last feature is considered output
+			Matrix features = new Matrix(data, 0, 0, data.rows(), data.cols() - 1);	// change 2 back to 1 so that the last feature is considered output
+			Matrix labels = new Matrix(data, 0, data.cols() - 1, data.rows(), 1);	// change 2 back to 1 so that the last feature is considered output
 			Matrix confusion = new Matrix();
 			double startTime = System.currentTimeMillis();
 			learner.train(features, labels);

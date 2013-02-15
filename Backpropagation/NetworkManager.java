@@ -23,6 +23,7 @@ public class NetworkManager {
 	}
 	
 	public void initializeNetwork(int n_in, int n_hidden, int n_hiddenLayers, int n_output) {
+		
 		// Initialize input layer
 		for (int i = 0; i < n_in; i++) {
 			INode inputNode = new InputNode();
@@ -61,6 +62,8 @@ public class NetworkManager {
 		_hiddenLayers.add(hiddenLayer1);
 		_hiddenLayers.add(hiddenLayer2);
 		
+		// 0.1, 0.2, -0.1,                                                      
+	    // -0.2, 0.3, -0.3, 
 		INode hiddenUnit1 = new HiddenUnit(1);
 		((AbstractUnit) hiddenUnit1).setBiasWeight(0.1);
 		((AbstractUnit) hiddenUnit1).setWeightMap(inputNode1, 0.2);
@@ -71,19 +74,30 @@ public class NetworkManager {
 		((AbstractUnit) hiddenUnit2).setWeightMap(inputNode2, -0.3);
 		_hiddenLayers.get(0).add(hiddenUnit1);
 		_hiddenLayers.get(0).add(hiddenUnit2);
+		
+		// 0.1, -0.2, -0.3, 
+	    // 0.2, -0.1, 0.3,
 		INode hiddenUnit3 = new HiddenUnit(3);
-		((AbstractUnit) hiddenUnit3).setWeightMap(, -0.2);
-		((AbstractUnit) hiddenUnit3).setWeightMap(, 0.3);
-		((AbstractUnit) hiddenUnit3).setWeightMap(, -0.3);
+		((AbstractUnit) hiddenUnit3).setBiasWeight(0.1);
+		((AbstractUnit) hiddenUnit3).setWeightMap(hiddenUnit1, -0.2);
+		((AbstractUnit) hiddenUnit3).setWeightMap(hiddenUnit2, -0.3);
 		INode hiddenUnit4 = new HiddenUnit(4);
-		((AbstractUnit) hiddenUnit4).setWeightMap(, -0.2);
-		((AbstractUnit) hiddenUnit4).setWeightMap(, 0.3);
-		((AbstractUnit) hiddenUnit4).setWeightMap(, -0.3);
+		((AbstractUnit) hiddenUnit4).setBiasWeight(0.2);
+		((AbstractUnit) hiddenUnit4).setWeightMap(hiddenUnit1, -0.1);
+		((AbstractUnit) hiddenUnit4).setWeightMap(hiddenUnit2, 0.3);
 		_hiddenLayers.get(1).add(hiddenUnit3);
 		_hiddenLayers.get(1).add(hiddenUnit4);
 		
+		// 0.2, -0.1, 0.3, 
+	    // 0.1, -0.2, -0.3
 		INode outputUnit1 = new OutputUnit(5);
+		((AbstractUnit) outputUnit1).setBiasWeight(0.2);
+		((AbstractUnit) outputUnit1).setWeightMap(hiddenUnit3, -0.1);
+		((AbstractUnit) outputUnit1).setWeightMap(hiddenUnit4, 0.3);
 		INode outputUnit2 = new OutputUnit(6);
+		((AbstractUnit) outputUnit2).setBiasWeight(0.1);
+		((AbstractUnit) outputUnit2).setWeightMap(hiddenUnit3, -0.2);
+		((AbstractUnit) outputUnit2).setWeightMap(hiddenUnit4, -0.3);
 		_outputLayer.add(outputUnit1);
 		_outputLayer.add(outputUnit2);
 	}
@@ -111,6 +125,43 @@ public class NetworkManager {
 		}
 	}
 	
+	public double getNetworkOutput (double[] inputs) {
+		giveInputNodesInput(inputs);
+		for (int i = 0; i < _hiddenLayers.size(); i++) {
+			ArrayList<INode> hiddenLayer = _hiddenLayers.get(i);
+			for (int j = 0; j < hiddenLayer.size(); j++) {
+				HiddenUnit hiddenUnit = (HiddenUnit) hiddenLayer.get(j);
+				hiddenUnit.receiveInputs();
+				hiddenUnit.calculateOutput();
+			}
+		}
+		
+		for (int i = 0; i < _outputLayer.size(); i++) {
+			OutputUnit outputUnit = (OutputUnit) _outputLayer.get(i);
+			outputUnit.receiveInputs();
+			outputUnit.calculateOutput();
+		}
+		
+		return (double) getHighestOutputUnitID();
+	}
+	
+	private int getHighestOutputUnitID () {
+		int unitID = -1;
+		double highestNet = -10000000;
+		double net = 0;
+		//System.out.println("OutputLayer Size: " + _outputLayer.size());
+		for (int i = 0; i < _outputLayer.size(); i++) {
+			net = ((OutputUnit) _outputLayer.get(i)).getNet();
+			//System.out.println("Output 1 Net: " + net);
+			if (net > highestNet) {
+				highestNet = net;
+				unitID = i;
+			}
+		}
+		//System.out.println("unitID: " + unitID);
+		return unitID;
+	}
+	
 	private void giveInputNodesInput (double[] inputs) {
 		for (int i = 0; i < _inputLayer.size(); i++) {
 			InputNode inputNode = (InputNode) _inputLayer.get(i);
@@ -119,16 +170,22 @@ public class NetworkManager {
 	}
 	
 	private void giveOutputUnitsTargets (double[] target) {
+		//System.out.println("		KJSNKJSNK: " + target[0]);
+		//	For the iris.arff data file:
+		//	If target is a 2, then a corresponding {0, 0, 1} will be passed to the outputUnits.
+		//	If target is a 1, then {0, 1, 0} is passed and so forth.
 		for (int i = 0; i < _outputLayer.size(); i++) {
 			OutputUnit outputUnit = (OutputUnit) _outputLayer.get(i);
-			outputUnit.setTarget(target[i]);
+			if (target[0] == i) // if target is a 2, when i is 2, set third outputUnit target to '1' (iris.arff)
+				outputUnit.setTarget(1);
+			else
+				outputUnit.setTarget(0);
 		}
 	}
 	
 	public void propagateErrorsBack() {
 		calculateOutputUnitErrors();
 		calculateHiddenUnitErrors();
-		updateAllWeights();
 	}
 	
 	private void calculateOutputUnitErrors() {
@@ -156,8 +213,16 @@ public class NetworkManager {
 		}
 	}
 	
-	private void updateAllWeights() {
-		
+	public void updateAllWeights() {
+		for (int i = 0; i < _hiddenLayers.size(); i++) {
+			ArrayList<INode> hiddenLayer = _hiddenLayers.get(i);
+			for (int j = 0; j < hiddenLayer.size(); j++) {
+				((AbstractUnit) hiddenLayer.get(j)).updateWeights(_learningRate);
+			}
+		}
+		for (int i = 0; i < _outputLayer.size(); i++) {
+			((AbstractUnit) _outputLayer.get(i)).updateWeights(_learningRate);
+		}
 	}
 	
 	private void initializeWeights (double Max, double Min) {
@@ -221,13 +286,39 @@ public class NetworkManager {
 		}
 	}
 	
+	public void printInputOutput(double[] inputs, double[] targets) {
+		System.out.print("Input vector: ");
+		for (int i = 0; i < inputs.length; i++) {
+			System.out.print(_inputLayer.get(i).getOutput() + ", ");
+		}
+		System.out.println();
+		System.out.print("Target output: ");
+		for (int i = 0; i < targets.length; i++) {
+			System.out.print(((OutputUnit) _outputLayer.get(i)).getTarget() + ", ");
+		}
+		System.out.println();
+	}
 	
+	public void printPredictedOutput() {
+		System.out.print("Predicted Output: ");
+		for (int i = 0; i < _outputLayer.size(); i++) {
+			System.out.print(_outputLayer.get(i).getOutput() + ", ");
+		}
+		System.out.println();
+	}
 	
-	
-	
-	
-	
-	
-	
-	
+	public void printErrorTerms() {
+		System.out.println("Error terms: ");
+		for (int i = 0; i < _hiddenLayers.size(); i++) {
+			ArrayList<INode> hiddenLayer = _hiddenLayers.get(i);
+			for (int j = 0; j < hiddenLayer.size(); j++) {
+				((AbstractUnit) hiddenLayer.get(j)).printErrorTerm();
+			}
+			System.out.println();
+		}
+		for (int i = 0; i < _outputLayer.size(); i++) {
+			((AbstractUnit) _outputLayer.get(i)).printErrorTerm();
+		}
+		System.out.println();
+	}
 }
