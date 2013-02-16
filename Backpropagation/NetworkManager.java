@@ -9,17 +9,23 @@ public class NetworkManager {
 	private ArrayList<INode> _outputLayer;
 	private double _learningRate;
 	private double _momentum;
-	private double _mse;
+	private double _networkMSE;
 	private int _unitCount;
+	private int _iterations;
+	private double _maxWeightRange;
+	private double _minWeightRange;
 
-	public NetworkManager(double learningRate, double momentum) {
+	public NetworkManager(double learningRate, double momentum, double maxWeightRange, double minWeightRange) {
 		_unitCount = 0;
 		_learningRate = learningRate;
 		_momentum = momentum;
-		_mse = 0;
+		_networkMSE = 0;
 		_inputLayer = new ArrayList<INode>();
 		_hiddenLayers = new ArrayList<ArrayList<INode>>();
 		_outputLayer = new ArrayList<INode>();
+		_iterations = 0;
+		_maxWeightRange = maxWeightRange;
+		_minWeightRange = minWeightRange;
 	}
 	
 	public void initializeNetwork(int n_in, int n_hidden, int n_hiddenLayers, int n_output) {
@@ -47,8 +53,9 @@ public class NetworkManager {
 			_outputLayer.add(outputUnit);
 		}
 		
-		// Initialize weights of all layers to a random value between -0.05 and 0.05
-		initializeWeights (0.05, -0.05);
+		// Initialize weights of all layers to a random value between
+		//	(variable max:0.05 and min:-0.05)
+		initializeWeights (_maxWeightRange, _minWeightRange);
 	}
 	
 	public void initializeNetwork() {
@@ -102,8 +109,27 @@ public class NetworkManager {
 		_outputLayer.add(outputUnit2);
 	}
 	
-	public double getMSE() {
-		return 0;
+	public double getPrevNetworkMSE() {
+		double prevError = (_networkMSE / (double) _inputLayer.size());	// save MSE
+		_networkMSE = 0;	// reset MSE
+		return prevError;
+	}
+	
+	public double getNetworkMSE() {
+		return (_networkMSE / (double)_inputLayer.size());
+	}
+	
+	public void keepTrackOfOutputUnitErrorSum() {
+		_networkMSE += getAllOutputUnitError();
+	}
+	
+	private double getAllOutputUnitError() {
+		double error = 0;
+		for (int i = 0; i < _outputLayer.size(); i++) {
+			OutputUnit outputUnit = (OutputUnit) _outputLayer.get(i);
+			error += Math.pow(outputUnit.getTarget() - outputUnit.getOutput(), 2);
+		}
+		return error;
 	}
 	
 	public void propagateInputForward (double[] inputs, double[] target) {
@@ -217,12 +243,13 @@ public class NetworkManager {
 		for (int i = 0; i < _hiddenLayers.size(); i++) {
 			ArrayList<INode> hiddenLayer = _hiddenLayers.get(i);
 			for (int j = 0; j < hiddenLayer.size(); j++) {
-				((AbstractUnit) hiddenLayer.get(j)).updateWeights(_learningRate);
+				((AbstractUnit) hiddenLayer.get(j)).updateWeights(_learningRate, _momentum, _iterations);
 			}
 		}
 		for (int i = 0; i < _outputLayer.size(); i++) {
-			((AbstractUnit) _outputLayer.get(i)).updateWeights(_learningRate);
+			((AbstractUnit) _outputLayer.get(i)).updateWeights(_learningRate, _momentum, _iterations);
 		}
+		_iterations++;
 	}
 	
 	private void initializeWeights (double Max, double Min) {
@@ -238,6 +265,7 @@ public class NetworkManager {
 			for (int j = 0; j < lastHiddenLayer.size(); j++) {
 				INode hiddenUnit = lastHiddenLayer.get(j);
 				outputUnit.setWeightMap(hiddenUnit, getRandomWeight(Max, Min));
+				outputUnit.setDeltaWeightMap(hiddenUnit, 0);
 			}
 		}
 	}
@@ -251,6 +279,7 @@ public class NetworkManager {
 				for (int j = 0; j < nextHiddenLayer.size(); j++) {
 					INode nextHiddenUnit = nextHiddenLayer.get(j);
 					hiddenUnit.setWeightMap(nextHiddenUnit, getRandomWeight(Max, Min));
+					hiddenUnit.setDeltaWeightMap(nextHiddenUnit, 0);
 				}
 			}
 		}
@@ -263,6 +292,7 @@ public class NetworkManager {
 			for (int j = 0; j < _inputLayer.size(); j++) {
 				INode inputNode = _inputLayer.get(j);
 				hiddenUnit.setWeightMap(inputNode, getRandomWeight(Max, Min));
+				hiddenUnit.setDeltaWeightMap(inputNode, 0);
 			}
 		}
 	}

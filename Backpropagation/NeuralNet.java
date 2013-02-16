@@ -1,6 +1,5 @@
 package Backpropagation;
 
-import java.util.ArrayList;
 import java.util.Random;
 import Main.Matrix;
 import Main.SupervisedLearner;
@@ -11,13 +10,15 @@ public class NeuralNet extends SupervisedLearner {
 	private NetworkManager _networkManager;
 	private double _learningRate;
 	private double _momentum;
-	private ArrayList<Double> _labels;
+	private double _maxWeightRange;
+	private double _minWeightRange;
 	
 	public NeuralNet(Random rand) {
-		_labels = new ArrayList<Double>();
 		_learningRate = 0.1;
-		_momentum = 0;
-		_networkManager = new NetworkManager(_learningRate, _momentum);
+		_momentum = 0.9;
+		_maxWeightRange = 0.05;
+		_minWeightRange = -0.05;
+		_networkManager = new NetworkManager(_learningRate, _momentum, _maxWeightRange, _minWeightRange);
 	}
 
 	@Override
@@ -35,27 +36,24 @@ public class NeuralNet extends SupervisedLearner {
 		// initialize the neural network to have as many input nodes as features and
 		//	as many output units as there are output classes
 		_networkManager.initializeNetwork(inputs.cols(), 2*inputs.cols(), 1, targets.valueCount(0));
-		
-		for (int i = 0; i < 200; i++) {
-			//System.out.println("Epoch " + (i+1) + "----------------");
-			//_networkManager.printWeights();
-			runAnEpoch(inputs, targets);
-		}
-		
-		/*boolean stoppingCriteriaMet = false;
+		double error = 0;
+		double prevError = 0;
+		int epochs = 0;
+		boolean stoppingCriteriaMet = false;
 		while (!stoppingCriteriaMet) {
-			runAnEpoch (_networkManager, inputs, targets);
-			stoppingCriteriaMet = stoppingCriteriaMet(_networkManager.getMSE());
-		}*/
+			prevError = _networkManager.getPrevNetworkMSE();
+			error = runAnEpoch(inputs, targets);
+			epochs++;
+			System.out.println ("prevError: " + prevError + " error: " + error);
+			stoppingCriteriaMet = stoppingCriteriaMet(prevError, error);
+		}
+		System.out.println("Epochs: " + epochs);
 	}
 	
-	private void runBackPropagationPrediction (double[] inputs, double[] answer) {
-		
-	}
-	
-	public void runAnEpoch (Matrix inputs, Matrix targets) {
+	public double runAnEpoch (Matrix inputs, Matrix targets) {
 		for (int i = 0; i < inputs.rows(); i++) {
 			_networkManager.propagateInputForward(inputs.row(i), targets.row(i));
+			_networkManager.keepTrackOfOutputUnitErrorSum();
 			//_networkManager.printInputOutput(inputs.row(i), targets.row(i));
 			//System.out.println("Forward propagating...");
 			//_networkManager.printPredictedOutput();
@@ -65,10 +63,12 @@ public class NeuralNet extends SupervisedLearner {
 			//System.out.println("Descending gradient...");
 			_networkManager.updateAllWeights();
 		}
+		double error = _networkManager.getNetworkMSE();
+		return error;
 	}
 	
-	public boolean stoppingCriteriaMet(double mse) {
-		return true;
+	public boolean stoppingCriteriaMet(double prevError, double error) {
+		return Math.abs(prevError - error) < 0.01;
 	}
 
 }

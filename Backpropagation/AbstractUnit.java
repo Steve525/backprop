@@ -1,7 +1,6 @@
 package Backpropagation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,6 +14,8 @@ public abstract class AbstractUnit extends AbstractNode {
 	Map<INode, Double> _nodesToWeights;
 	protected int _id;
 	protected double _biasWeight;
+	double _biasDeltaWeight;
+	Map<INode, Double> _nodesToDeltaWeights;
 	
 	public AbstractUnit() {
 		_errorTerm = 0;
@@ -23,6 +24,8 @@ public abstract class AbstractUnit extends AbstractNode {
 		_inputs = new ArrayList<Double>();
 		_weights = new ArrayList<Double>();
 		_nodesToWeights = new LinkedHashMap<INode, Double>();
+		_biasDeltaWeight = 0;
+		_nodesToDeltaWeights = new LinkedHashMap<INode, Double>();
 	}
 	
 	public void setBiasWeight(double biasWeight) { _biasWeight = biasWeight; }
@@ -56,17 +59,20 @@ public abstract class AbstractUnit extends AbstractNode {
 	
 	public abstract void calculateErrorTerm();
 	
-	public void updateWeights(double learningRate) {
-		double bias_delta_weight = learningRate * _errorTerm;
-		_biasWeight += bias_delta_weight;
+	public void updateWeights(double learningRate, double momentum, int iterations) {
+		_biasDeltaWeight = (learningRate * _errorTerm * 1) + (momentum * _biasDeltaWeight);
+		_biasWeight += _biasDeltaWeight;
 		Iterator<INode> iterator = _nodesToWeights.keySet().iterator();
+		double delta_weight = 0;
 		while (iterator.hasNext()) {
 			INode node = (INode)iterator.next();
 			double output = node.getOutput();
 			double weight = _nodesToWeights.get(node);
-			double delta_weight = learningRate * _errorTerm * output;
+			double prevDeltaWeight = _nodesToDeltaWeights.get(node);
+			delta_weight = (learningRate * _errorTerm * output) + (momentum * prevDeltaWeight);
 			weight += delta_weight;
 			_nodesToWeights.put(node, weight);
+			_nodesToDeltaWeights.put(node, delta_weight);
 		}
 	}
 	
@@ -81,6 +87,10 @@ public abstract class AbstractUnit extends AbstractNode {
 	
 	public void setWeightMap (INode node, double weight) {
 		_nodesToWeights.put(node, weight);
+	}
+	
+	public void setDeltaWeightMap (INode node, double initWeight) {
+		_nodesToDeltaWeights.put(node, initWeight);
 	}
 	
 	public void printWeights() {
