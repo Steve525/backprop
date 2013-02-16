@@ -36,7 +36,7 @@ public class NeuralNet extends SupervisedLearner {
 		//	as many output units as there are output classes
 		_networkManager.initializeNetwork(inputs.cols(), 2*inputs.cols(), 1, targets.valueCount(0));
 		
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 200; i++) {
 			//System.out.println("Epoch " + (i+1) + "----------------");
 			//_networkManager.printWeights();
 			runAnEpoch(inputs, targets);
