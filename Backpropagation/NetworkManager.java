@@ -14,6 +14,9 @@ public class NetworkManager {
 	private int _iterations;
 	private double _maxWeightRange;
 	private double _minWeightRange;
+	private int _correctlyClassified;
+	private double _networkOutput;
+	private double _numberOfInstances;
 
 	public NetworkManager(double learningRate, double momentum, double maxWeightRange, double minWeightRange) {
 		_unitCount = 0;
@@ -26,9 +29,14 @@ public class NetworkManager {
 		_iterations = 0;
 		_maxWeightRange = maxWeightRange;
 		_minWeightRange = minWeightRange;
+		_correctlyClassified = 0;
+		_networkOutput = 0;
 	}
 	
-	public void initializeNetwork(int n_in, int n_hidden, int n_hiddenLayers, int n_output) {
+	public void initializeNetwork(int n_in, int n_hidden, int n_hiddenLayers, int n_output,
+																double numberOfInstances) {
+		
+		_numberOfInstances = numberOfInstances;
 		
 		// Initialize input layer
 		for (int i = 0; i < n_in; i++) {
@@ -109,14 +117,22 @@ public class NetworkManager {
 		_outputLayer.add(outputUnit2);
 	}
 	
+	public double getClassificationAccuracy() {
+		double classificationAccuracy = (_correctlyClassified / _numberOfInstances);
+		_correctlyClassified = 0;
+		return classificationAccuracy;
+	}
+	
+	public double getCorrectlyClassified() { return _correctlyClassified; }
+	
 	public double getPrevNetworkMSE() {
-		double prevError = (_networkMSE / (double) _inputLayer.size());	// save MSE
+		double prevError = (_networkMSE / _numberOfInstances);	// save MSE
 		_networkMSE = 0;	// reset MSE
 		return prevError;
 	}
 	
 	public double getNetworkMSE() {
-		return (_networkMSE / (double)_inputLayer.size());
+		return (_networkMSE / _numberOfInstances);
 	}
 	
 	public void keepTrackOfOutputUnitErrorSum() {
@@ -149,6 +165,9 @@ public class NetworkManager {
 			outputUnit.receiveInputs();
 			outputUnit.calculateOutput();
 		}
+		double output = (double) getHighestOutputUnitID();
+		if (output == target[0])
+			_correctlyClassified++;
 	}
 	
 	public double getNetworkOutput (double[] inputs) {
@@ -167,7 +186,6 @@ public class NetworkManager {
 			outputUnit.receiveInputs();
 			outputUnit.calculateOutput();
 		}
-		
 		return (double) getHighestOutputUnitID();
 	}
 	
