@@ -17,7 +17,7 @@ public class NeuralNet extends SupervisedLearner {
 	private double _minWeightRange;
 	
 	public NeuralNet(Random rand) {
-		_learningRate = 0.3;
+		_learningRate = 0.1;
 		_momentum = 0;
 		_maxWeightRange = 0.05;
 		_minWeightRange = -0.05;
@@ -46,11 +46,12 @@ public class NeuralNet extends SupervisedLearner {
 		double classificationAccuracy = 0;
 		int epochs = 0;
 		boolean stoppingCriteriaMet = false;
-		//while (!stoppingCriteriaMet) {
-		for (int i = 0; i < 2000; i++) {
+		writer.append("Epochs, Percent Misclassification, Training MSE\n");
+		for (int i = 0; i < 100; i++){
 			prev_mse = _networkManager.getPrevNetworkMSE();
 			runAnEpoch(inputs, targets);
 			epochs++;
+			System.out.println("Epochs: " + epochs);
 			mse = _networkManager.getNetworkMSE();
 			classificationAccuracy = _networkManager.getClassificationAccuracy();
 			writer.append(Integer.toString(epochs));
@@ -60,13 +61,7 @@ public class NeuralNet extends SupervisedLearner {
 			writer.append(Double.toString(mse));
 			writer.append("\n");
 			writer.flush();
-			/*System.out.print(epochs);
-			System.out.print(",");
-			System.out.print(1-classificationAccuracy);
-			System.out.print(",");
-			System.out.print(mse);
-			System.out.println();*/
-			//stoppingCriteriaMet = stoppingCriteriaMet(prev_mse, mse);
+			stoppingCriteriaMet = stoppingCriteriaMet(prev_mse, mse);
 		}
 		writer.close();
 	}
@@ -75,19 +70,13 @@ public class NeuralNet extends SupervisedLearner {
 		for (int i = 0; i < inputs.rows(); i++) {
 			_networkManager.propagateInputForward(inputs.row(i), targets.row(i));
 			_networkManager.keepTrackOfOutputUnitErrorSum();
-			//_networkManager.printInputOutput(inputs.row(i), targets.row(i));
-			//System.out.println("Forward propagating...");
-			//_networkManager.printPredictedOutput();
-			//System.out.println("Back propagating...");
 			_networkManager.propagateErrorsBack();
-			//_networkManager.printErrorTerms();
-			//System.out.println("Descending gradient...");
 			_networkManager.updateAllWeights();
 		}
 	}
 	
 	public boolean stoppingCriteriaMet(double prevError, double error) {
-		return Math.abs(prevError - error) < 0.01;
+		return Math.abs(prevError - error) < 0.001;
 	}
 
 }
