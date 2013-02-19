@@ -106,6 +106,19 @@ public abstract class AbstractUnit extends AbstractNode {
 		System.out.println("");
 	}
 	
+	public String toStringWeights() {
+		String weights = "";
+		Iterator<INode> iterator = _nodesToWeights.keySet().iterator();
+		while (iterator.hasNext()) {
+			INode node = iterator.next();
+			double weight = _nodesToWeights.get(node);
+			weights += Double.toString(weight);
+			weights += ",";
+		}
+		weights += "\n";
+		return weights;
+	}
+	
 	public void printErrorTerm() {
 		System.out.print("	" + _errorTerm + ", ");
 	}

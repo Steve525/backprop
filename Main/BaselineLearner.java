@@ -16,7 +16,7 @@ public class BaselineLearner extends SupervisedLearner {
 
 	double[] m_labels;
 
-	public void train(Matrix features, Matrix labels) throws Exception {
+	public void train(Matrix features, Matrix labels, Matrix x, Matrix y, Matrix z) throws Exception {
 		m_labels = new double[labels.cols()];
 		for(int i = 0; i < labels.cols(); i++) {
 			if(labels.valueCount(i) == 0)

@@ -1,0 +1,19 @@
+@relation vowel
+@attribute 'Feature 1' {0,1}
+@attribute 'Feature 2' {0,1}
+@attribute 'Feature 3' {0,1}
+@attribute 'Feature 4' {0,1}
+@attribute 'Feature 5' {0,1}
+@attribute 'Feature 6' {0,1}
+@attribute 'Feature 7' {0,1}
+@attribute 'Feature 8' {0,1}
+@attribute 'class' {0,1,2,3,4,5,6,7}
+@data
+1,0,0,0,0,0,0,0,0
+0,1,0,0,0,0,0,0,1
+0,0,1,0,0,0,0,0,2
+0,0,0,1,0,0,0,0,3
+0,0,0,0,1,0,0,0,4
+0,0,0,0,0,1,0,0,5
+0,0,0,0,0,0,1,0,6
+0,0,0,0,0,0,0,1,7

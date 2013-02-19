@@ -189,6 +189,10 @@ public class NetworkManager {
 		return (double) getHighestOutputUnitID();
 	}
 	
+	public void printHiddenUnitWeights () {
+		System.out.print(((AbstractUnit) _hiddenLayers.get(0).get(1)).toStringWeights());
+	}
+	
 	private int getHighestOutputUnitID () {
 		int unitID = -1;
 		double highestNet = -10000000;

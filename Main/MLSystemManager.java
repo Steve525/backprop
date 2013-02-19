@@ -71,7 +71,7 @@ public class MLSystemManager {
 			Matrix labels = new Matrix(data, 0, data.cols() - 1, data.rows(), 1);	// change 2 back to 1 so that the last feature is considered output
 			Matrix confusion = new Matrix();
 			double startTime = System.currentTimeMillis();
-			learner.train(features, labels);
+			learner.train(features, labels, features, labels, confusion);
 			double elapsedTime = System.currentTimeMillis() - startTime;
 			System.out.println("Time to train (in seconds): " + elapsedTime / 1000.0);
 			double accuracy = learner.measureAccuracy(features, labels, confusion);
@@ -95,7 +95,7 @@ public class MLSystemManager {
 			Matrix features = new Matrix(data, 0, 0, data.rows(), data.cols() - 1);
 			Matrix labels = new Matrix(data, 0, data.cols() - 1, data.rows(), 1);
 			double startTime = System.currentTimeMillis();
-			learner.train(features, labels);
+			learner.train(features, labels, features, labels, null);
 			double elapsedTime = System.currentTimeMillis() - startTime;
 			System.out.println("Time to train (in seconds): " + elapsedTime / 1000.0);
 			double trainAccuracy = learner.measureAccuracy(features, labels, null);
@@ -126,7 +126,7 @@ public class MLSystemManager {
 			Matrix testFeatures = new Matrix(data, trainSize, 0, data.rows() - trainSize, data.cols() - 1);
 			Matrix testLabels = new Matrix(data, trainSize, data.cols() - 1, data.rows() - trainSize, 1);
 			double startTime = System.currentTimeMillis();
-			learner.train(trainFeatures, trainLabels);
+			learner.train(trainFeatures, trainLabels, testFeatures, testLabels, null);
 			double elapsedTime = System.currentTimeMillis() - startTime;
 			System.out.println("Time to train (in seconds): " + elapsedTime / 1000.0);
 			double trainAccuracy = learner.measureAccuracy(trainFeatures, trainLabels, null);
@@ -162,7 +162,7 @@ public class MLSystemManager {
 					trainFeatures.add(data, end, 0, data.rows() - end);
 					trainLabels.add(data, end, data.cols() - 1, data.rows() - end);
 					double startTime = System.currentTimeMillis();
-					learner.train(trainFeatures, trainLabels);
+					learner.train(trainFeatures, trainLabels, trainLabels, trainFeatures, null);
 					elapsedTime += System.currentTimeMillis() - startTime;
 					double accuracy = learner.measureAccuracy(testFeatures, testLabels, null);
 					sumAccuracy += accuracy;

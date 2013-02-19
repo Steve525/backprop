@@ -17,7 +17,7 @@ public class NeuralNet extends SupervisedLearner {
 	private double _minWeightRange;
 	
 	public NeuralNet(Random rand) {
-		_learningRate = 0.1;
+		_learningRate = 0.2;
 		_momentum = 0;
 		_maxWeightRange = 0.05;
 		_minWeightRange = -0.05;
@@ -25,8 +25,8 @@ public class NeuralNet extends SupervisedLearner {
 	}
 
 	@Override
-	public void train(Matrix features, Matrix labels) throws Exception {
-		runBackPropagationTraining(features, labels);
+	public void train(Matrix features, Matrix labels, Matrix vFeatures, Matrix vLabels, Matrix confusion) throws Exception {
+		runBackPropagationTraining(features, labels, vFeatures, vLabels, confusion);
 	}
 
 	@Override
@@ -34,36 +34,65 @@ public class NeuralNet extends SupervisedLearner {
 		labels[0] = _networkManager.getNetworkOutput(features);
 	}
 	
-	private void runBackPropagationTraining (Matrix inputs, Matrix targets) throws IOException {
+	private void runBackPropagationTraining (Matrix inputs, Matrix targets, Matrix vFeatures, Matrix vLabels, Matrix confusion) throws Exception {
 		// initialize the neural network to have as many input nodes as features and
 		//	as many output units as there are output classes
-		_networkManager.initializeNetwork(inputs.cols(), 2*inputs.cols(), 1, targets.valueCount(0),
+		int n_input = inputs.cols();
+		int n_hidden = 3;
+		int n_hiddenLayers = 1;
+		int n_output = targets.valueCount(0);
+		
+		_networkManager.initializeNetwork(n_input, n_hidden, n_hiddenLayers, n_output,
 											inputs.rows());
-		String sFileName = "LearningRateTest-" + Double.toString(_learningRate) + ".csv";
-		FileWriter writer = new FileWriter(sFileName);
-		double mse = 0;
+		System.out.print("input, hidden, hidden layers, output\n");
+		System.out.print(n_input);
+		System.out.print(",");
+		System.out.print(n_hidden);
+		System.out.print(",");
+		System.out.print(n_hiddenLayers);
+		System.out.print(",");
+		System.out.print(n_output);
+		System.out.print("\n");
+		//String sFileName = "LearningRateTest-" + Double.toString(_learningRate) + 
+							//"-" + n_hidden + "-layers-" + n_hiddenLayers + ".csv";
+		//FileWriter writer = new FileWriter(sFileName);
+		//System.out.println(sFileName);
+		double trainingMSE = 0;
 		double prev_mse = 0;
+		double validationClassificationAccuracy = 0;
 		double classificationAccuracy = 0;
 		int epochs = 0;
 		boolean stoppingCriteriaMet = false;
-		writer.append("Epochs, Percent Misclassification, Training MSE\n");
-		for (int i = 0; i < 100; i++){
+		System.out.print("Epochs, Training MSE, Validation Classification Accuracy\n");
+		//writer.append("Epochs, Classification Accuracy, Training MSE\n");
+		for (int i = 0; i < 2500; i++){
+		//while (!stoppingCriteriaMet) {
 			prev_mse = _networkManager.getPrevNetworkMSE();
 			runAnEpoch(inputs, targets);
 			epochs++;
-			System.out.println("Epochs: " + epochs);
-			mse = _networkManager.getNetworkMSE();
+			trainingMSE = _networkManager.getNetworkMSE();
+			validationClassificationAccuracy = super.measureAccuracy(vFeatures, vLabels, confusion);
 			classificationAccuracy = _networkManager.getClassificationAccuracy();
-			writer.append(Integer.toString(epochs));
+			System.out.print(epochs);
+			System.out.print(",");
+			_networkManager.printHiddenUnitWeights();
+			//System.out.print(classificationAccuracy);
+			//System.out.print(",");
+			//System.out.print(trainingMSE);
+			//System.out.print(",");
+			//System.out.print(1 - validationClassificationAccuracy);
+			//System.out.print("\n");
+			/*writer.append(Integer.toString(epochs));
 			writer.append(",");
-			writer.append(Double.toString(1 - classificationAccuracy));
+			writer.append(Double.toString(classificationAccuracy));
 			writer.append(",");
 			writer.append(Double.toString(mse));
 			writer.append("\n");
-			writer.flush();
-			stoppingCriteriaMet = stoppingCriteriaMet(prev_mse, mse);
+			writer.flush();*/
+			stoppingCriteriaMet = stoppingCriteriaMet(prev_mse, trainingMSE);
 		}
-		writer.close();
+		//System.out.println("Epochs: " + epochs);
+		//writer.close();
 	}
 	
 	public void runAnEpoch (Matrix inputs, Matrix targets) {
@@ -78,5 +107,4 @@ public class NeuralNet extends SupervisedLearner {
 	public boolean stoppingCriteriaMet(double prevError, double error) {
 		return Math.abs(prevError - error) < 0.001;
 	}
-
 }
